@@ -1,22 +1,25 @@
 from flask import Flask, request, jsonify
-import requests
 
-app = Flask(__name__)
+app = Flask(name)
 
-MODEL_URL = "https://crisdeyvid-gema-ai-model.hf.space/predict"  # Tu modelo en HF Spaces
-
-@app.route("/puente", methods=["POST"])
-def puente():
-    # Recibe texto plano, tipo: "38.0,118415.5,118416.2,30.2,82.9"
+@app.route('/predict', methods=['POST'])
+def predict():
+    # Obtener el texto plano del body
+    data = request.get_data(as_text=True).strip()
     try:
-        texto = request.data.decode("utf-8")
-        features = [float(x.strip()) for x in texto.split(",") if x.strip()]
-        payload = {"features": features}
-        r = requests.post(MODEL_URL, json=payload, timeout=15)
-        return jsonify(r.json())
+        # Convertir los valores a float
+        features = [float(x.strip()) for x in data.split(",") if x.strip()]
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        return jsonify({"error": f"Error parsing input: {e}"}), 400
 
-@app.route("/", methods=["GET"])
-def home():
-    return "🚀 Puente activo: POST texto limpio a /puente", 200
+    # --- Aquí harías el request a tu modelo IA, pero vamos a simular la respuesta ---
+    # Ejemplo de respuesta
+    output = {
+        "input": features,
+        "signal": "CALL" if sum(features) > 0 else "PUT",  # Simula lógica
+        "confianza": "99.9%"
+    }
+    return jsonify(output)
+
+if name == 'main':
+    app.run(host='0.0.0.0', port=10000)
