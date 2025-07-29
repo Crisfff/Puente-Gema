@@ -1,25 +1,28 @@
 from flask import Flask, request, jsonify
+import requests
+
+MODEL_URL = "https://crisdeyvid-gema-ai-model.hf.space/predict"  # <--- Tu modelo real
 
 app = Flask(name)
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    # Obtener el texto plano del body
+    # Recibe texto plano del body
     data = request.get_data(as_text=True).strip()
     try:
-        # Convertir los valores a float
+        # Convierte a lista de floats
         features = [float(x.strip()) for x in data.split(",") if x.strip()]
     except Exception as e:
         return jsonify({"error": f"Error parsing input: {e}"}), 400
 
-    # --- Aquí harías el request a tu modelo IA, pero vamos a simular la respuesta ---
-    # Ejemplo de respuesta
-    output = {
-        "input": features,
-        "signal": "CALL" if sum(features) > 0 else "PUT",  # Simula lógica
-        "confianza": "99.9%"
-    }
-    return jsonify(output)
+    # Envía a tu modelo como JSON
+    payload = {"features": features}
+    try:
+        resp = requests.post(MODEL_URL, json=payload, timeout=15)
+        result = resp.json()
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": f"Error contacting model: {e}"}), 500
 
-if name == 'main':
+if name == "main":
     app.run(host='0.0.0.0', port=10000)
