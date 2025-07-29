@@ -1,28 +1,25 @@
 from flask import Flask, request, jsonify
 import requests
 
-MODEL_URL = "https://crisdeyvid-gema-ai-model.hf.space/predict"  # <--- Tu modelo real
+app = Flask(__name__)
 
-app = Flask(name)
+MODEL_URL = "https://crisdeyvid-gema-ai-model.hf.space/predict"
 
-@app.route('/predict', methods=['POST'])
+@app.route("/predict", methods=["POST"])
 def predict():
-    # Recibe texto plano del body
-    data = request.get_data(as_text=True).strip()
+    # Recibe valores en texto plano (separados por comas)
+    features_text = request.data.decode("utf-8").strip()
     try:
-        # Convierte a lista de floats
-        features = [float(x.strip()) for x in data.split(",") if x.strip()]
+        features = [float(x.strip()) for x in features_text.split(",") if x.strip()]
     except Exception as e:
-        return jsonify({"error": f"Error parsing input: {e}"}), 400
+        return jsonify({"error": f"Error parsing features: {e}"}), 400
 
-    # Envía a tu modelo como JSON
     payload = {"features": features}
     try:
-        resp = requests.post(MODEL_URL, json=payload, timeout=15)
-        result = resp.json()
-        return jsonify(result)
+        response = requests.post(MODEL_URL, json=payload, timeout=15)
+        return jsonify(response.json())
     except Exception as e:
         return jsonify({"error": f"Error contacting model: {e}"}), 500
 
-if name == "main":
-    app.run(host='0.0.0.0', port=10000)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
